@@ -54,6 +54,9 @@
 #include "smooth.h"
 #include "tempcomp.h"
 #include "util.h"
+#ifdef HAVE_SYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
 
 /* ================================================== */
 
@@ -487,8 +490,8 @@ int main
     }
   }
 
-  if (getuid() && !client_only)
-    LOG_FATAL("Not superuser");
+//if (getuid() && !client_only)
+//  LOG_FATAL("Not superuser");
 
   /* Turn into a daemon */
   if (!nofork) {
@@ -600,9 +603,17 @@ int main
     post_init_rtc_hook(NULL);
   }
 
+#ifdef HAVE_SYSTEMD
+  sd_notify(0, "READY=1");
+#endif
+
   /* The program normally runs under control of the main loop in
      the scheduler. */
   SCH_MainLoop();
+
+#ifdef HAVE_SYSTEMD
+  sd_notify(0, "STOPPING=1");
+#endif
 
   LOG(LOGS_INFO, "chronyd exiting");
 
