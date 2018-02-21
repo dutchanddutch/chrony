@@ -1,0 +1,33 @@
+[Unit]
+Description=chrony, an NTP client/server
+Documentation=man:chronyd(8) man:chronyc(1) man:chrony.conf(5)
+Conflicts=systemd-timesyncd.service openntpd.service
+#After=network.target
+ConditionCapability=CAP_SYS_TIME
+ConditionVirtualization=!container
+DefaultDependencies=no
+After=systemd-remount-fs.service systemd-sysusers.service
+Before=time-sync.target sysinit.target shutdown.target
+Conflicts=shutdown.target
+Wants=time-sync.target
+
+[Service]
+Type=notify
+#Restart=always
+#PIDFile=/run/chrony/chronyd.pid
+ExecStart=/usr/local/sbin/chronyd -d -n -s -r
+User=chrony
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ProtectControlGroups=yes
+ReadWritePaths=/var/lib/chrony
+ReadWritePaths=/run/chrony
+NoNewPrivileges=true
+CapabilityBoundingSet=CAP_SYS_TIME
+AmbientCapabilities=CAP_SYS_TIME
+DevicePolicy=closed
+
+[Install]
+Alias=chronyd.service
+WantedBy=sysinit.target
